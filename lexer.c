@@ -339,6 +339,20 @@ LexerResult parseLexeme(const char* input, TokenType* token_type) {
     return result;
 }
 
+const char* getTokenTypeName(TokenType token_type) {
+    static const char* token_type_names[TOKEN_TYPE_COUNT] = {
+        [TOKEN_INVALID]    = "Token invalido",
+        [TOKEN_IDENTIFIER] = "Variable",
+        [TOKEN_KEYWORD]    = "Palabra reservada",
+        [TOKEN_OPERATOR]   = "Operador",
+        [TOKEN_NUMBER]     = "Número",
+        [TOKEN_STRING]     = "Cadena",
+    };
+
+    if (token_type >= 0 && token_type <= TOKEN_TYPE_COUNT) return token_type_names[token_type];
+    return "Desconocido";
+}
+
 #pragma region Get character category
 static SymbolType getSymbolType(const char symbol) {
     switch (symbol) {
@@ -460,7 +474,7 @@ static void printError(int error, const char last_char) {
 
 #define RED "\e[0;31m"
 #define COLOR_RESET "\e[0m"
-    printf(RED "Algo salio mal. Código de error: %d\n", error);
+    printf(RED "Token no válido. Código de error: %d\n", error);
     printf(error_msg, last_char);
     printf("\n" COLOR_RESET);
 }

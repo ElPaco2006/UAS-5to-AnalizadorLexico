@@ -14,6 +14,7 @@ typedef enum {
     //TOKEN_COMPLEX_OPERATOR,
     TOKEN_NUMBER,
     TOKEN_STRING,
+    TOKEN_TYPE_COUNT
 } TokenType;
 
 static constexpr int ERROR_OFFSET = 1000;
@@ -47,5 +48,6 @@ typedef enum {
 } LexerResult;
 
 LexerResult parseLexeme(const char* input, TokenType* token_type);
+const char* getTokenTypeName(TokenType token_type);
 
 #endif //PACOCOMPILER_LEXER_H
