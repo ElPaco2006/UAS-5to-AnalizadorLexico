@@ -70,7 +70,18 @@ INSTANTIATE_TEST_SUITE_P(
     )
 );
 
-
 // Words
+INSTANTIATE_TEST_SUITE_P(
+    Strings,
+    LexerTest,
+    testing::Values(
+        LexerTestSample{"\"Hello, World!\"", LEX_SUCCESS, TOKEN_STRING},
+        LexerTestSample{"\"@`~^[]*    asdd \"", LEX_SUCCESS, TOKEN_STRING},
+        LexerTestSample{"\"\"", LEX_SUCCESS, TOKEN_STRING},
+        
+        LexerTestSample{"\"Hello, World!", ER_STRING_LEFT_OPEN, TOKEN_STRING},
+        LexerTestSample{"\"Hello, World!\"   abc", ER_STRING_ALREADY_CLOSED, TOKEN_STRING}
+    )
+);
 
 // Operators
