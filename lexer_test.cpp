@@ -3,7 +3,10 @@
 //
 
 #include <gtest/gtest.h>
+
+extern "C" {
 #include "lexer.h"
+}
 
 TEST(HelloTest, BasicAssertions) {
     // Expect two strings not to be equal.
