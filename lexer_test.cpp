@@ -19,7 +19,7 @@ class LexerTest : public testing::TestWithParam<LexerSample> {};
 TEST_P(LexerTest, TestSample) {
     const auto& [input, expected_result, expected_type] = GetParam();
 
-    TokenType type;
+    TokenType type           = TOKEN_INVALID;
     const LexerResult result = parseLexeme(input, &type);
 
     ASSERT_EQ(type, expected_type);
@@ -95,7 +95,6 @@ INSTANTIATE_TEST_SUITE_P(
         LexerSample{"*", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{"/", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{"%", LEX_SUCCESS, TOKEN_OPERATOR},
-        LexerSample{"!", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{"<", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{">", LEX_SUCCESS, TOKEN_OPERATOR},
 
@@ -108,7 +107,6 @@ INSTANTIATE_TEST_SUITE_P(
         LexerSample{"*=", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{"/=", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{"%=", LEX_SUCCESS, TOKEN_OPERATOR},
-        LexerSample{"!=", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{"<=", LEX_SUCCESS, TOKEN_OPERATOR},
         LexerSample{">=", LEX_SUCCESS, TOKEN_OPERATOR}
 

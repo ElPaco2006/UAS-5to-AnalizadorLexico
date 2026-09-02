@@ -40,12 +40,12 @@ typedef enum {
     ST_STRING_OPEN   = 9,
     ST_STRING_CLOSED = 10,
 
-    ST_OPERATOR_PLUS      = 11,
-    ST_OPERATOR_MINUS     = 12,
-    ST_OPERATOR_OTHER     = 13,
-    ST_OPERATOR_INCREMENT = 14,
-    ST_OPERATOR_DECREMENT = 15,
-    ST_OPERATOR_COMPLEX   = 16,
+    ST_OPERATOR_PLUS       = 11,
+    ST_OPERATOR_MINUS      = 12,
+    ST_OPERATOR_OTHER      = 13,
+    ST_OPERATOR_INCREMENT  = 14,
+    ST_OPERATOR_DECREMENT  = 15,
+    ST_OPERATOR_RELATIONAL = 16,
 
     ST_WORD              = 17,
     ST_WORD_WITH_NUMBERS = 18,
@@ -60,10 +60,10 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [LETTER]        = ER_IDK,
         [EXPONENT]      = ER_IDK,
         [DIGIT]         = ST_NUMBER,
-        [OPERATOR]      = ER_IDK,
-        [PLUS]          = ER_IDK,
+        [OPERATOR]      = ST_OPERATOR_OTHER,
+        [PLUS]          = ST_OPERATOR_PLUS,
         [MINUS]         = ST_OPERATOR_MINUS,
-        [EQUALS]        = ER_IDK,
+        [EQUALS]        = ST_OPERATOR_OTHER,
         [QUOTES]        = ST_STRING_OPEN,
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK,
@@ -150,21 +150,6 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [INVALID]       = ER_IDK,
         //[EOF] = ST_NULL, [DIGIT] = ST_NUMBER_EXPONENT_AMOUNT
     },
-    [ST_OPERATOR_MINUS] = {
-        [EOF]           = ST_NULL,
-        [LETTER]        = ER_IDK,
-        [EXPONENT]      = ER_IDK,
-        [DIGIT]         = ST_NUMBER,
-        [OPERATOR]      = ER_IDK,
-        [PLUS]          = ER_IDK,
-        [MINUS]         = ER_IDK,
-        [EQUALS]        = ER_IDK,
-        [QUOTES]        = ER_IDK,
-        [DECIMAL_POINT] = ER_IDK,
-        [INVALID]       = ER_IDK,
-        //[EOF] = ST_NULL, [DIGIT] = ST_NUMBER
-    },
-
     [ST_STRING_OPEN] = {
         [EOF]           = ER_STRING_LEFT_OPEN,
         [LETTER]        = ST_STRING_OPEN,
@@ -190,6 +175,88 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [QUOTES]        = ER_STRING_ALREADY_CLOSED,
         [DECIMAL_POINT] = ER_STRING_ALREADY_CLOSED,
         [INVALID]       = ER_STRING_ALREADY_CLOSED,
+    },
+
+    [ST_OPERATOR_PLUS] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDK,
+        [EXPONENT]      = ER_IDK,
+        [DIGIT]         = ER_IDK,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ST_OPERATOR_INCREMENT,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
+    },
+    [ST_OPERATOR_MINUS] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDK,
+        [EXPONENT]      = ER_IDK,
+        [DIGIT]         = ST_NUMBER,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ST_OPERATOR_DECREMENT,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK
+    },
+    [ST_OPERATOR_OTHER] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDK,
+        [EXPONENT]      = ER_IDK,
+        [DIGIT]         = ER_IDK,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ST_OPERATOR_RELATIONAL,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
+
+    },
+    [ST_OPERATOR_INCREMENT] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDK,
+        [EXPONENT]      = ER_IDK,
+        [DIGIT]         = ER_IDK,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
+
+    },
+    [ST_OPERATOR_DECREMENT] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDK,
+        [EXPONENT]      = ER_IDK,
+        [DIGIT]         = ER_IDK,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
+
+    },
+    [ST_OPERATOR_RELATIONAL] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDK,
+        [EXPONENT]      = ER_IDK,
+        [DIGIT]         = ER_IDK,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
     },
 };
 
@@ -268,7 +335,7 @@ LexerResult parseLexeme(const char* input, TokenType* token_type) {
         *token_type = TOKEN_NUMBER;
     } else if (state >= ST_STRING_OPEN && state <= ST_STRING_CLOSED) {
         *token_type = TOKEN_STRING;
-    } else if (state >= ST_OPERATOR_PLUS && state <= ST_OPERATOR_COMPLEX) {
+    } else if (state >= ST_OPERATOR_PLUS && state <= ST_OPERATOR_RELATIONAL) {
         *token_type = TOKEN_OPERATOR;
     } else if (state >= ST_WORD && state <= ST_WORD_WITH_NUMBERS) {
         *token_type = isKeyword(input) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
@@ -303,7 +370,7 @@ bool isDigit(char c) {
 }
 
 bool isOperator(const char c) {
-    constexpr char operators[]  = {'+', '-', '*', '/', '=', '!', '<', '>'};
+    constexpr char operators[]  = {'+', '-', '*', '/', '%', '=', '<', '>'};
     constexpr int operator_size = sizeof(operators) / sizeof(operators[0]);
 
     for (int i = 0; i < operator_size; i++) {
