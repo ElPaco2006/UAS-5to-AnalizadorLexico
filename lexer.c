@@ -40,15 +40,15 @@ typedef enum {
     ST_STRING_OPEN   = 9,
     ST_STRING_CLOSED = 10,
 
-    ST_OPERATOR_PLUS       = 11,
-    ST_OPERATOR_MINUS      = 12,
-    ST_OPERATOR_OTHER      = 13,
-    ST_OPERATOR_INCREMENT  = 14,
-    ST_OPERATOR_DECREMENT  = 15,
-    ST_OPERATOR_RELATIONAL = 16,
+    ST_OPERATOR_PLUS      = 11,
+    ST_OPERATOR_MINUS     = 12,
+    ST_OPERATOR_OTHER     = 13,
+    ST_OPERATOR_INCREMENT = 14,
+    ST_OPERATOR_DECREMENT = 15,
+    ST_OPERATOR_COMPLEX   = 16,
 
-    ST_WORD              = 17,
-    ST_WORD_WITH_NUMBERS = 18,
+    ST_IDENTIFIER              = 17,
+    ST_IDENTIFIER_WITH_NUMBERS = 18,
 
     STATE_COUNT,
 } State;
@@ -57,8 +57,8 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
     [ST_NULL]  = {0},
     [ST_START] = {
         [EOF]           = ST_NULL,
-        [LETTER]        = ER_IDK,
-        [EXPONENT]      = ER_IDK,
+        [LETTER]        = ST_IDENTIFIER,
+        [EXPONENT]      = ST_IDENTIFIER,
         [DIGIT]         = ST_NUMBER,
         [OPERATOR]      = ST_OPERATOR_OTHER,
         [PLUS]          = ST_OPERATOR_PLUS,
@@ -68,6 +68,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK,
     },
+
     [ST_NUMBER] = {
         [EOF]           = ST_NULL,
         [LETTER]        = ER_IDK,
@@ -150,6 +151,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [INVALID]       = ER_IDK,
         //[EOF] = ST_NULL, [DIGIT] = ST_NUMBER_EXPONENT_AMOUNT
     },
+
     [ST_STRING_OPEN] = {
         [EOF]           = ER_STRING_LEFT_OPEN,
         [LETTER]        = ST_STRING_OPEN,
@@ -185,7 +187,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [OPERATOR]      = ER_IDK,
         [PLUS]          = ST_OPERATOR_INCREMENT,
         [MINUS]         = ER_IDK,
-        [EQUALS]        = ER_IDK,
+        [EQUALS]        = ST_OPERATOR_COMPLEX,
         [QUOTES]        = ER_IDK,
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK,
@@ -196,9 +198,9 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [EXPONENT]      = ER_IDK,
         [DIGIT]         = ST_NUMBER,
         [OPERATOR]      = ER_IDK,
-        [PLUS]          = ST_OPERATOR_DECREMENT,
-        [MINUS]         = ER_IDK,
-        [EQUALS]        = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ST_OPERATOR_DECREMENT,
+        [EQUALS]        = ST_OPERATOR_COMPLEX,
         [QUOTES]        = ER_IDK,
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK
@@ -211,7 +213,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [OPERATOR]      = ER_IDK,
         [PLUS]          = ER_IDK,
         [MINUS]         = ER_IDK,
-        [EQUALS]        = ST_OPERATOR_RELATIONAL,
+        [EQUALS]        = ST_OPERATOR_COMPLEX,
         [QUOTES]        = ER_IDK,
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK,
@@ -245,7 +247,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [INVALID]       = ER_IDK,
 
     },
-    [ST_OPERATOR_RELATIONAL] = {
+    [ST_OPERATOR_COMPLEX] = {
         [EOF]           = ST_NULL,
         [LETTER]        = ER_IDK,
         [EXPONENT]      = ER_IDK,
@@ -286,42 +288,6 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [INVALID]       = ER_IDK,
     },
 };
-
-static char* keywords[] = {
-    "if",
-    "else",
-
-    "switch",
-    "case",
-    "break",
-    "default",
-
-    "for",
-    "while",
-    "continue",
-
-    "void",
-    "unsigned",
-    "char",
-    "int",
-    "float",
-    "double",
-    "bool",
-
-    "return",
-    "const",
-    "static",
-    "volatile",
-    "sizeof",
-    "goto",
-
-    "enum",
-    "struct",
-    "union",
-    "typedef",
-};
-static constexpr int keyword_count = sizeof(keywords) / sizeof(keywords[0]);
-
 static char* error_msg[ERROR_COUNT] = {0};
 
 static bool isDigit(char c);
@@ -362,9 +328,9 @@ LexerResult parseLexeme(const char* input, TokenType* token_type) {
         *token_type = TOKEN_NUMBER;
     } else if (state >= ST_STRING_OPEN && state <= ST_STRING_CLOSED) {
         *token_type = TOKEN_STRING;
-    } else if (state >= ST_OPERATOR_PLUS && state <= ST_OPERATOR_RELATIONAL) {
+    } else if (state >= ST_OPERATOR_PLUS && state <= ST_OPERATOR_COMPLEX) {
         *token_type = TOKEN_OPERATOR;
-    } else if (state >= ST_WORD && state <= ST_WORD_WITH_NUMBERS) {
+    } else if (state >= ST_IDENTIFIER && state <= ST_IDENTIFIER_WITH_NUMBERS) {
         *token_type = isKeyword(input) ? TOKEN_KEYWORD : TOKEN_IDENTIFIER;
     } else {
         *token_type = TOKEN_INVALID;
@@ -414,6 +380,41 @@ bool isLetter(char c) {
 }
 
 static bool isKeyword(const char* word) {
+    static const char* keywords[] = {
+        "if",
+        "else",
+
+        "switch",
+        "case",
+        "break",
+        "default",
+
+        "for",
+        "while",
+        "continue",
+
+        "void",
+        "unsigned",
+        "char",
+        "int",
+        "float",
+        "double",
+        "bool",
+
+        "return",
+        "const",
+        "static",
+        "volatile",
+        "sizeof",
+        "goto",
+
+        "enum",
+        "struct",
+        "union",
+        "typedef",
+    };
+    static constexpr int keyword_count = sizeof(keywords) / sizeof(keywords[0]);
+
     for (int i = 0; i < keyword_count; i++) {
         if (strcmp(keywords[i], word) == 0) return true;
     }
