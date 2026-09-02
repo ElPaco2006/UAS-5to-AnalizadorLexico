@@ -36,9 +36,9 @@ typedef enum {
     ST_NUMBER_EXPONENT_SIGN   = 6,
     ST_NUMBER_EXPONENT_AMOUNT = 7,
 
-    ST_STRING_OPEN    = 8,
-    ST_STRING_CONTENT = 9,
-    ST_STRING_CLOSE   = 10,
+    //ST_STRING_OPEN    = 8,
+    ST_STRING_OPEN   = 9,
+    ST_STRING_CLOSED = 10,
 
     ST_OPERATOR_PLUS      = 11,
     ST_OPERATOR_MINUS     = 12,
@@ -57,6 +57,10 @@ static constexpr int ERROR_OFFSET = 1000;
 
 typedef enum {
     ER_IDK,
+
+    ER_STRING_LEFT_OPEN,      // ("abc)
+    ER_STRING_ALREADY_CLOSED, // ("abc"de)
+
     ERROR_COUNT
 } Error;
 
@@ -71,7 +75,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [PLUS]          = ER_IDK,
         [MINUS]         = ST_OPERATOR_MINUS,
         [EQUALS]        = ER_IDK,
-        [QUOTES]        = ER_IDK,
+        [QUOTES]        = ST_STRING_OPEN,
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK,
     },
@@ -171,6 +175,33 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [INVALID]       = ER_IDK,
         //[EOF] = ST_NULL, [DIGIT] = ST_NUMBER
     },
+
+    [ST_STRING_OPEN] = {
+        [EOF]           = ER_STRING_LEFT_OPEN,
+        [LETTER]        = ST_STRING_OPEN,
+        [EXPONENT]      = ST_STRING_OPEN,
+        [DIGIT]         = ST_STRING_OPEN,
+        [OPERATOR]      = ST_STRING_OPEN,
+        [PLUS]          = ST_STRING_OPEN,
+        [MINUS]         = ST_STRING_OPEN,
+        [EQUALS]        = ST_STRING_OPEN,
+        [QUOTES]        = ST_STRING_CLOSED,
+        [DECIMAL_POINT] = ST_STRING_OPEN,
+        [INVALID]       = ST_STRING_OPEN,
+    },
+    [ST_STRING_CLOSED] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_STRING_ALREADY_CLOSED,
+        [EXPONENT]      = ER_STRING_ALREADY_CLOSED,
+        [DIGIT]         = ER_STRING_ALREADY_CLOSED,
+        [OPERATOR]      = ER_STRING_ALREADY_CLOSED,
+        [PLUS]          = ER_STRING_ALREADY_CLOSED,
+        [MINUS]         = ER_STRING_ALREADY_CLOSED,
+        [EQUALS]        = ER_STRING_ALREADY_CLOSED,
+        [QUOTES]        = ER_STRING_ALREADY_CLOSED,
+        [DECIMAL_POINT] = ER_STRING_ALREADY_CLOSED,
+        [INVALID]       = ER_STRING_ALREADY_CLOSED,
+    },
 };
 
 static char* keywords[] = {
@@ -246,7 +277,7 @@ bool parseLexeme(const char* input, TokenType* token_type) {
 
     if (state >= ST_NUMBER && state <= ST_NUMBER_EXPONENT_AMOUNT) {
         *token_type = TOKEN_NUMBER;
-    } else if (state >= ST_STRING_OPEN && state <= ST_STRING_CLOSE) {
+    } else if (state >= ST_STRING_OPEN && state <= ST_STRING_CLOSED) {
         *token_type = TOKEN_STRING;
     } else if (state >= ST_OPERATOR_PLUS && state <= ST_OPERATOR_COMPLEX) {
         *token_type = TOKEN_OPERATOR;

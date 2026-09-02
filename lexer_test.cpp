@@ -74,6 +74,59 @@ TEST(LexerNumbers, ScientificNotation) {
 }
 
 // Strings
+TEST(LexerStrings, ValidStrings) {
+    const char* samples[] = {
+        "\"Hello, World!\"",
+        "\"Goodbye, World!\"",
+        "\"A\"",
+        "\")(/&%$#E'|~{^\"",
+    };
+    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
+
+    for (int i = 0; i < samples_count; i++) {
+        TokenType type;
+        bool is_valid = parseLexeme(samples[i], &type);
+
+        ASSERT_EQ(type, TOKEN_STRING);
+        EXPECT_TRUE(is_valid);
+    }
+}
+
+TEST(LexerStrings, LeftOpenedStrings) {
+    const char* samples[] = {
+        "\"Hello, World!",
+        "\"Goodbye, World!",
+        "\"A",
+        "\")(/&%$#E'|~{^",
+    };
+    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
+
+    for (int i = 0; i < samples_count; i++) {
+        TokenType type;
+        bool is_valid = parseLexeme(samples[i], &type);
+
+        ASSERT_EQ(type, TOKEN_STRING);
+        EXPECT_FALSE(is_valid);
+    }
+}
+
+TEST(LexerStrings, ContentAfterClosedStrings) {
+    const char* samples[] = {
+        "\"Hello, World!\"ad",
+        "\"Goodbye, World!\"aada",
+        "\"A\"12",
+        "\")(/&%$#E'|~{^\"     +/***",
+    };
+    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
+
+    for (int i = 0; i < samples_count; i++) {
+        TokenType type;
+        bool is_valid = parseLexeme(samples[i], &type);
+
+        ASSERT_EQ(type, TOKEN_STRING);
+        EXPECT_FALSE(is_valid);
+    }
+}
 
 // Words
 
