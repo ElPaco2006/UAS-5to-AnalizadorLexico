@@ -25,6 +25,8 @@ typedef enum {
     ER_STRING_LEFT_OPEN,      // ("abc)
     ER_STRING_ALREADY_CLOSED, // ("abc"de)
 
+    ER_IDENTIFIER_LETTER_AFTER_DIGIT, // (foo123a)
+
     ERROR_COUNT
 } LexerResult;
 

@@ -113,3 +113,21 @@ INSTANTIATE_TEST_SUITE_P(
         // TODO: Add errors
     )
 );
+
+INSTANTIATE_TEST_SUITE_P(
+    Words,
+    LexerTest,
+    testing::Values(
+        LexerSample{"foo", LEX_SUCCESS, TOKEN_IDENTIFIER},
+        LexerSample{"foo_bar", LEX_SUCCESS, TOKEN_IDENTIFIER},
+        LexerSample{"foo123", LEX_SUCCESS, TOKEN_IDENTIFIER},
+        LexerSample{"while_123", LEX_SUCCESS, TOKEN_IDENTIFIER},
+
+        LexerSample{"if", LEX_SUCCESS, TOKEN_KEYWORD},
+        LexerSample{"for", LEX_SUCCESS, TOKEN_KEYWORD},
+        LexerSample{"while", LEX_SUCCESS, TOKEN_KEYWORD},
+
+        LexerSample{"for_123_", ER_IDENTIFIER_LETTER_AFTER_DIGIT, TOKEN_IDENTIFIER}
+        // TODO: Add errors
+    )
+);

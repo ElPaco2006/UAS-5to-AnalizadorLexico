@@ -258,6 +258,33 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [DECIMAL_POINT] = ER_IDK,
         [INVALID]       = ER_IDK,
     },
+
+    [ST_IDENTIFIER] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ST_IDENTIFIER,
+        [EXPONENT]      = ST_IDENTIFIER,
+        [DIGIT]         = ST_IDENTIFIER_WITH_NUMBERS,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
+    },
+    [ST_IDENTIFIER_WITH_NUMBERS] = {
+        [EOF]           = ST_NULL,
+        [LETTER]        = ER_IDENTIFIER_LETTER_AFTER_DIGIT,
+        [EXPONENT]      = ER_IDENTIFIER_LETTER_AFTER_DIGIT,
+        [DIGIT]         = ST_IDENTIFIER_WITH_NUMBERS,
+        [OPERATOR]      = ER_IDK,
+        [PLUS]          = ER_IDK,
+        [MINUS]         = ER_IDK,
+        [EQUALS]        = ER_IDK,
+        [QUOTES]        = ER_IDK,
+        [DECIMAL_POINT] = ER_IDK,
+        [INVALID]       = ER_IDK,
+    },
 };
 
 static char* keywords[] = {
