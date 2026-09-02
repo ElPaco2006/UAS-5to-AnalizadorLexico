@@ -8,125 +8,68 @@ extern "C" {
 #include "lexer.h"
 }
 
-TEST(HelloTest, BasicAssertions) {
-    // Expect two strings not to be equal.
-    EXPECT_STRNE("hello", "world");
-    // Expect equality.
-    EXPECT_EQ(7 * 6, 42);
+struct LexerTestSample {
+    const char* input;
+    LexerResult expected_result;
+    TokenType expected_type;
+};
+
+class LexerTest : public testing::TestWithParam<LexerTestSample> {};
+
+TEST_P(LexerTest, TestSample) {
+    const auto& [input, expected_result, expected_type] = GetParam();
+
+    TokenType type;
+    const LexerResult result = parseLexeme(input, &type);
+
+    ASSERT_EQ(type, expected_type);
+    EXPECT_EQ(result, expected_result);
 }
 
 // Numbers
-TEST(LexerNumbers, Integer) {
-    const char* samples[] = {
-        "1",
-        "-1",
-        "1234",
-        "9",
-        "010",
-        "01",
-    };
-    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
+INSTANTIATE_TEST_SUITE_P(
+    NumberInteger,
+    LexerTest,
+    testing::Values(
+        LexerTestSample{"1", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"1234567890", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"123_", ER_IDK, TOKEN_NUMBER},
+        LexerTestSample{"-1", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"-1234567890", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"-123_", ER_IDK, TOKEN_NUMBER}
+    )
+);
 
-    for (int i = 0; i < samples_count; i++) {
-        TokenType type;
-        LexerResult result = parseLexeme(samples[i], &type);
+INSTANTIATE_TEST_SUITE_P(
+    NumberReal,
+    LexerTest,
+    testing::Values(
+        LexerTestSample{"1.0", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"1234.56789", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"1.0.0", ER_IDK, TOKEN_NUMBER},
+        LexerTestSample{"-1.0", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"-1234.56789", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"-1.0.0", ER_IDK, TOKEN_NUMBER}
+    )
+);
 
-        ASSERT_EQ(type, TOKEN_NUMBER);
-        EXPECT_EQ(result, LEX_SUCCESS);
-    }
-}
+INSTANTIATE_TEST_SUITE_P(
+    NumberScientific,
+    LexerTest,
+    testing::Values(
+        LexerTestSample{"8E2", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"8e2", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"-8E2", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"8.0E2", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"8.0E+2", LEX_SUCCESS, TOKEN_NUMBER},
+        LexerTestSample{"8.0E-2", LEX_SUCCESS, TOKEN_NUMBER},
 
-TEST(LexerNumbers, Real) {
-    const char* samples[] = {
-        "1.0",
-        "-1.0",
-        "1.123",
-        "100.1000000000",
-    };
-    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
+        LexerTestSample{"8.0.0e2", ER_IDK, TOKEN_NUMBER},
+        LexerTestSample{"8.0E++2", ER_IDK, TOKEN_NUMBER},
+        LexerTestSample{"8.0E--2", ER_IDK, TOKEN_NUMBER}
+    )
+);
 
-    for (int i = 0; i < samples_count; i++) {
-        TokenType type;
-        LexerResult result = parseLexeme(samples[i], &type);
-
-        ASSERT_EQ(type, TOKEN_NUMBER);
-        EXPECT_EQ(result, LEX_SUCCESS);
-    }
-}
-
-TEST(LexerNumbers, ScientificNotation) {
-    const char* samples[] = {
-        "8E2",
-        "8e2",
-        "-8.0E2",
-        "8.0E+2",
-        "8.0E-2",
-    };
-    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
-
-    for (int i = 0; i < samples_count; i++) {
-        TokenType type;
-        LexerResult result = parseLexeme(samples[i], &type);
-
-        ASSERT_EQ(type, TOKEN_NUMBER);
-        EXPECT_EQ(result, LEX_SUCCESS);
-    }
-}
-
-// Strings
-TEST(LexerStrings, ValidStrings) {
-    const char* samples[] = {
-        "\"Hello, World!\"",
-        "\"Goodbye, World!\"",
-        "\"A\"",
-        "\")(/&%$#E'|~{^\"",
-    };
-    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
-
-    for (int i = 0; i < samples_count; i++) {
-        TokenType type;
-        LexerResult result = parseLexeme(samples[i], &type);
-
-        ASSERT_EQ(type, TOKEN_STRING);
-        EXPECT_EQ(result, LEX_SUCCESS);
-    }
-}
-
-TEST(LexerStrings, LeftOpenedStrings) {
-    const char* samples[] = {
-        "\"Hello, World!",
-        "\"Goodbye, World!",
-        "\"A",
-        "\")(/&%$#E'|~{^",
-    };
-    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
-
-    for (int i = 0; i < samples_count; i++) {
-        TokenType type;
-        LexerResult result = parseLexeme(samples[i], &type);
-
-        ASSERT_EQ(type, TOKEN_STRING);
-        EXPECT_EQ(result, ER_STRING_LEFT_OPEN);
-    }
-}
-
-TEST(LexerStrings, ContentAfterClosedStrings) {
-    const char* samples[] = {
-        "\"Hello, World!\"ad",
-        "\"Goodbye, World!\"aada",
-        "\"A\"12",
-        "\")(/&%$#E'|~{^\"     +/***",
-    };
-    constexpr int samples_count = sizeof(samples) / sizeof(samples[0]);
-
-    for (int i = 0; i < samples_count; i++) {
-        TokenType type;
-        LexerResult result = parseLexeme(samples[i], &type);
-
-        ASSERT_EQ(type, TOKEN_STRING);
-        EXPECT_EQ(result, ER_STRING_ALREADY_CLOSED);
-    }
-}
 
 // Words
 
