@@ -57,7 +57,7 @@ typedef enum {
 static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
     [ST_NULL]  = {0},
     [ST_START] = {
-        [EOL]           = ER_EMPTY,
+        [EOL]           = ER_NO_INPUT,
         [LETTER]        = ST_IDENTIFIER,
         [EXPONENT]      = ST_IDENTIFIER,
         [DIGIT]         = ST_NUMBER,
@@ -298,7 +298,8 @@ static SymbolType getSymbolType(char symbol);
 static bool isKeyword(const char* word);
 
 static bool isError(int state);
-static void printError(int error, const char* input, char last_char);
+static void printError(int error, char last_char);
+
 
 LexerResult parseLexeme(const char* input, TokenType* token_type) {
     LexerState state   = ST_START;
@@ -310,7 +311,7 @@ LexerResult parseLexeme(const char* input, TokenType* token_type) {
         const LexerState next_state = lexer_matrix[state][type];
 
         if (isError(next_state)) {
-            printError(next_state, input, *c);
+            printError(next_state, *c);
             result = (LexerResult)next_state;
             break;
         }
@@ -428,30 +429,38 @@ static bool isError(const int state) {
     return state >= ERROR_OFFSET && state < ERROR_COUNT;
 }
 
-static void printError(int error, const char* input, char last_char) {
-    const char* error_messages[] = {
-        [ER_IDK]                                = "",
-        [ER_EMPTY]                              = "",
-        [ER_INVALID_CHARACTER]                  = "",
-        [ER_NUMBER_MISSING_INTEGER_PART]        = "",
-        [ER_NUMBER_MISSING_DECIMAL_PART]        = "",
-        [ER_NUMBER_MISSING_EXPONENT_PART]       = "",
-        [ER_NUMBER_MORE_THAN_ONE_DECIMAL_POINT] = "",
-        [ER_NUMBER_DECIMAL_ON_EXPONENT]         = "",
-        [ER_NUMBER_MORE_THAN_ONE_EXPONENT]      = "",
-        [ER_NUMBER_MORE_THAN_ONE_EXPONENT_SIGN] = "",
-        [ER_NUMBER_INVALID_CHARACTER]           = "",
-        [ER_STRING_LEFT_OPEN]                   = "",
-        [ER_STRING_ALREADY_CLOSED]              = "",
-        [ER_OPERATOR_TOO_LONG]                  = "",
-        [ER_OPERATOR_INVALID_COMPLEX]           = "",
-        [ER_OPERATOR_INVALID_CHARACTER]         = "",
-        [ER_IDENTIFIER_INVALID_CHARACTER]       = "",
-        [ER_IDENTIFIER_LETTER_AFTER_DIGIT]      = ""
+static void printError(int error, const char last_char) {
+    const char* error_messages[ERROR_COUNT - ERROR_OFFSET] = {
+        [ER_IDK - ERROR_OFFSET]               = "Error desconocido.",
+        [ER_NO_INPUT - ERROR_OFFSET]          = "No se introdujo nada.",
+        [ER_INVALID_CHARACTER - ERROR_OFFSET] = "'%c' No es un caracter válido.",
+
+        [ER_NUMBER_MISSING_INTEGER_PART - ERROR_OFFSET]        = "No puedes iniciar un número con el punto decimal. Coloca un cero o algún otro numero antes.",
+        [ER_NUMBER_MISSING_DECIMAL_PART - ERROR_OFFSET]        = "No se ingreso ningún decimal.",
+        [ER_NUMBER_MISSING_EXPONENT_PART - ERROR_OFFSET]       = "No se ingreso ningún exponente.",
+        [ER_NUMBER_MORE_THAN_ONE_DECIMAL_POINT - ERROR_OFFSET] = "No puedes tener más de un punto decimal.",
+        [ER_NUMBER_DECIMAL_ON_EXPONENT - ERROR_OFFSET]         = "El exponente tiene que ser un numero entero.",
+        [ER_NUMBER_MORE_THAN_ONE_EXPONENT - ERROR_OFFSET]      = "Ya se ingreso una base.",
+        [ER_NUMBER_MORE_THAN_ONE_EXPONENT_SIGN - ERROR_OFFSET] = "Ya se especifico un signo de exponente.",
+        [ER_NUMBER_INVALID_CHARACTER - ERROR_OFFSET]           = "'%c' No es un digito valido.",
+
+        [ER_STRING_LEFT_OPEN - ERROR_OFFSET]      = "No se cerró la cadena. Cierra las comillas.",
+        [ER_STRING_ALREADY_CLOSED - ERROR_OFFSET] = "Ya se cerró la cadena.",
+
+        [ER_OPERATOR_TOO_LONG - ERROR_OFFSET]          = "No hay operadores de más de 2 carácteres.",
+        [ER_OPERATOR_INVALID_COMPLEX - ERROR_OFFSET]   = "Operador désconocido.",
+        [ER_OPERATOR_INVALID_CHARACTER - ERROR_OFFSET] = "'%c' No es un operador válido.",
+
+        [ER_IDENTIFIER_INVALID_CHARACTER - ERROR_OFFSET]  = "No puedes usar '%c' en el nombre de una variable.",
+        [ER_IDENTIFIER_LETTER_AFTER_DIGIT - ERROR_OFFSET] = "No puedes colocar letras después de colocar un número en el nombre de una variable."
     };
 
     if (!isError(error)) error = ER_IDK;
-    const char* errormsg = error_messages[error - ERROR_OFFSET];
-    printf("Algo salio mal. Código de error: %d\n", error);
-    printf(errormsg, input, last_char);
+    const char* error_msg = error_messages[error - ERROR_OFFSET];
+
+#define RED "\e[0;31m"
+#define COLOR_RESET "\e[0m"
+    printf(RED "Algo salio mal. Código de error: %d\n", error);
+    printf(error_msg, last_char);
+    printf("\n" COLOR_RESET);
 }

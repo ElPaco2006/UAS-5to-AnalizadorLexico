@@ -22,9 +22,18 @@ TEST_P(LexerTest, TestSample) {
     TokenType type           = TOKEN_INVALID;
     const LexerResult result = parseLexeme(input, &type);
 
-    ASSERT_EQ(type, expected_type);
+    EXPECT_EQ(type, expected_type);
     EXPECT_EQ(result, expected_result) << "Input: " << input << std::endl;
 }
+
+INSTANTIATE_TEST_SUITE_P(
+    Miscellaneous,
+    LexerTest,
+    testing::Values(
+        LexerSample{"", ER_NO_INPUT, TOKEN_INVALID},
+        LexerSample{"Ñ", ER_INVALID_CHARACTER, TOKEN_INVALID}
+    )
+);
 
 // Numbers
 INSTANTIATE_TEST_SUITE_P(
