@@ -29,10 +29,10 @@ TEST(LexerNumbers, Integer) {
 
     for (int i = 0; i < samples_count; i++) {
         TokenType type;
-        bool is_valid = parseLexeme(samples[i], &type);
+        LexerResult result = parseLexeme(samples[i], &type);
 
         ASSERT_EQ(type, TOKEN_NUMBER);
-        EXPECT_TRUE(is_valid);
+        EXPECT_EQ(result, LEX_SUCCESS);
     }
 }
 
@@ -47,10 +47,10 @@ TEST(LexerNumbers, Real) {
 
     for (int i = 0; i < samples_count; i++) {
         TokenType type;
-        bool is_valid = parseLexeme(samples[i], &type);
+        LexerResult result = parseLexeme(samples[i], &type);
 
         ASSERT_EQ(type, TOKEN_NUMBER);
-        EXPECT_TRUE(is_valid);
+        EXPECT_EQ(result, LEX_SUCCESS);
     }
 }
 
@@ -66,10 +66,10 @@ TEST(LexerNumbers, ScientificNotation) {
 
     for (int i = 0; i < samples_count; i++) {
         TokenType type;
-        bool is_valid = parseLexeme(samples[i], &type);
+        LexerResult result = parseLexeme(samples[i], &type);
 
         ASSERT_EQ(type, TOKEN_NUMBER);
-        EXPECT_TRUE(is_valid);
+        EXPECT_EQ(result, LEX_SUCCESS);
     }
 }
 
@@ -85,10 +85,10 @@ TEST(LexerStrings, ValidStrings) {
 
     for (int i = 0; i < samples_count; i++) {
         TokenType type;
-        bool is_valid = parseLexeme(samples[i], &type);
+        LexerResult result = parseLexeme(samples[i], &type);
 
         ASSERT_EQ(type, TOKEN_STRING);
-        EXPECT_TRUE(is_valid);
+        EXPECT_EQ(result, LEX_SUCCESS);
     }
 }
 
@@ -103,10 +103,10 @@ TEST(LexerStrings, LeftOpenedStrings) {
 
     for (int i = 0; i < samples_count; i++) {
         TokenType type;
-        bool is_valid = parseLexeme(samples[i], &type);
+        LexerResult result = parseLexeme(samples[i], &type);
 
         ASSERT_EQ(type, TOKEN_STRING);
-        EXPECT_FALSE(is_valid);
+        EXPECT_EQ(result, ER_STRING_LEFT_OPEN);
     }
 }
 
@@ -121,10 +121,10 @@ TEST(LexerStrings, ContentAfterClosedStrings) {
 
     for (int i = 0; i < samples_count; i++) {
         TokenType type;
-        bool is_valid = parseLexeme(samples[i], &type);
+        LexerResult result = parseLexeme(samples[i], &type);
 
         ASSERT_EQ(type, TOKEN_STRING);
-        EXPECT_FALSE(is_valid);
+        EXPECT_EQ(result, ER_STRING_ALREADY_CLOSED);
     }
 }
 

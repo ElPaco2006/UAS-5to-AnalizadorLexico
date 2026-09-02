@@ -53,17 +53,6 @@ typedef enum {
     STATE_COUNT,
 } State;
 
-static constexpr int ERROR_OFFSET = 1000;
-
-typedef enum {
-    ER_IDK,
-
-    ER_STRING_LEFT_OPEN,      // ("abc)
-    ER_STRING_ALREADY_CLOSED, // ("abc"de)
-
-    ERROR_COUNT
-} Error;
-
 static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
     [ST_NULL]  = {0},
     [ST_START] = {
@@ -80,7 +69,7 @@ static int lexer_matrix[STATE_COUNT][SYMBOL_COUNT] = {
         [INVALID]       = ER_IDK,
     },
     [ST_NUMBER] = {
-        [EOF]           = ER_IDK,
+        [EOF]           = ST_NULL,
         [LETTER]        = ER_IDK,
         [EXPONENT]      = ST_NUMBER_EXPONENT,
         [DIGIT]         = ST_NUMBER,
@@ -251,9 +240,9 @@ static bool isKeyword(const char* word);
 static bool isError(int state);
 static void printError(int error, const char* input);
 
-bool parseLexeme(const char* input, TokenType* token_type) {
-    int state           = ST_START;
-    bool is_valid_token = true;
+LexerResult parseLexeme(const char* input, TokenType* token_type) {
+    State state        = ST_START;
+    LexerResult result = LEX_SUCCESS;
 
     const char* c = input;
     while (true) {
@@ -262,7 +251,7 @@ bool parseLexeme(const char* input, TokenType* token_type) {
 
         if (isError(next_state)) {
             printError(next_state, input);
-            is_valid_token = false;
+            result = (LexerResult)next_state;
             break;
         }
 
@@ -273,7 +262,7 @@ bool parseLexeme(const char* input, TokenType* token_type) {
     }
 
     // Set token type
-    if (token_type == nullptr) return is_valid_token;
+    if (token_type == nullptr) return result;
 
     if (state >= ST_NUMBER && state <= ST_NUMBER_EXPONENT_AMOUNT) {
         *token_type = TOKEN_NUMBER;
@@ -286,7 +275,7 @@ bool parseLexeme(const char* input, TokenType* token_type) {
     } else {
         *token_type = TOKEN_INVALID;
     }
-    return is_valid_token;
+    return result;
 }
 
 static SymbolType getSymbolType(const char symbol) {
@@ -339,8 +328,7 @@ static bool isKeyword(const char* word) {
 }
 
 static bool isError(const int state) {
-    return false;
-    //return state >= 0 && state < STATE_COUNT;
+    return state >= ERROR_OFFSET && state < ERROR_COUNT;
 }
 
 static void printError(int error, const char* input) {}

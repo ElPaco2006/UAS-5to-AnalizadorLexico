@@ -16,6 +16,18 @@ typedef enum {
     TOKEN_STRING,
 } TokenType;
 
-bool parseLexeme(const char* input, TokenType* token_type);
+static constexpr int ERROR_OFFSET = 1000;
+
+typedef enum {
+    LEX_SUCCESS = 0,
+    ER_IDK      = ERROR_OFFSET,
+
+    ER_STRING_LEFT_OPEN,      // ("abc)
+    ER_STRING_ALREADY_CLOSED, // ("abc"de)
+
+    ERROR_COUNT
+} LexerResult;
+
+LexerResult parseLexeme(const char* input, TokenType* token_type);
 
 #endif //PACOCOMPILER_LEXER_H
