@@ -33,10 +33,11 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(
         LexerSample{"1", LEX_SUCCESS, TOKEN_NUMBER},
         LexerSample{"1234567890", LEX_SUCCESS, TOKEN_NUMBER},
-        LexerSample{"123_", ER_IDK, TOKEN_NUMBER},
         LexerSample{"-1", LEX_SUCCESS, TOKEN_NUMBER},
         LexerSample{"-1234567890", LEX_SUCCESS, TOKEN_NUMBER},
-        LexerSample{"-123_", ER_IDK, TOKEN_NUMBER}
+
+        LexerSample{"123_", ER_NUMBER_INVALID_CHARACTER, TOKEN_NUMBER},
+        LexerSample{"-123_", ER_NUMBER_INVALID_CHARACTER, TOKEN_NUMBER}
     )
 );
 
@@ -46,10 +47,11 @@ INSTANTIATE_TEST_SUITE_P(
     testing::Values(
         LexerSample{"1.0", LEX_SUCCESS, TOKEN_NUMBER},
         LexerSample{"1234.56789", LEX_SUCCESS, TOKEN_NUMBER},
-        LexerSample{"1.0.0", ER_IDK, TOKEN_NUMBER},
         LexerSample{"-1.0", LEX_SUCCESS, TOKEN_NUMBER},
         LexerSample{"-1234.56789", LEX_SUCCESS, TOKEN_NUMBER},
-        LexerSample{"-1.0.0", ER_IDK, TOKEN_NUMBER}
+
+        LexerSample{"1.0.0", ER_NUMBER_MORE_THAN_ONE_DECIMAL_POINT, TOKEN_NUMBER},
+        LexerSample{"-1.0.0", ER_NUMBER_MORE_THAN_ONE_DECIMAL_POINT, TOKEN_NUMBER}
     )
 );
 
@@ -64,9 +66,10 @@ INSTANTIATE_TEST_SUITE_P(
         LexerSample{"8.0E+2", LEX_SUCCESS, TOKEN_NUMBER},
         LexerSample{"8.0E-2", LEX_SUCCESS, TOKEN_NUMBER},
 
-        LexerSample{"8.0.0e2", ER_IDK, TOKEN_NUMBER},
-        LexerSample{"8.0E++2", ER_IDK, TOKEN_NUMBER},
-        LexerSample{"8.0E--2", ER_IDK, TOKEN_NUMBER}
+        LexerSample{"8.0.0e2", ER_NUMBER_MORE_THAN_ONE_DECIMAL_POINT, TOKEN_NUMBER},
+        LexerSample{"8.0E++2", ER_NUMBER_MORE_THAN_ONE_EXPONENT_SIGN, TOKEN_NUMBER},
+        LexerSample{"8.0E--2", ER_NUMBER_MORE_THAN_ONE_EXPONENT_SIGN, TOKEN_NUMBER},
+        LexerSample{"8.0E-2.4", ER_NUMBER_DECIMAL_ON_EXPONENT, TOKEN_NUMBER}
     )
 );
 
